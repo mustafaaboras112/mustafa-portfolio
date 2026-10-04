@@ -477,6 +477,34 @@ footer{padding-bottom:95px}
   100%{transform:translateX(-150px) translateY(0) skewX(0deg);opacity:0}
 }
 @media(prefers-reduced-motion:reduce){.intro-tile{animation:none}}
+
+/* Polished navigation with a quiet current-section indicator. */
+.nav{border-bottom:1px solid #dfe8f3;box-shadow:0 4px 22px rgba(41,73,116,.035)}
+.nav-inner{gap:20px;padding-block:10px}
+.nav-links{align-items:center;gap:5px;padding:5px;border:1px solid #e3ecf6;border-radius:17px;background:#f3f7fc}
+.nav-links a{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:8px 13px;border:1px solid transparent;border-radius:12px;font-size:13px;font-weight:600;line-height:1.6;color:#5d718d;transition:background .2s ease,color .2s ease,box-shadow .2s ease,transform .2s ease}
+.nav-links a:hover{background:#fff;color:#315e9f;box-shadow:0 3px 9px rgba(47,81,130,.06)}
+.nav-links a[aria-current="location"]{background:#fff;border-color:#dce8f8;color:#315e9f;box-shadow:0 3px 10px rgba(47,81,130,.07)}
+.nav-links a[aria-current="location"]::after{content:"";position:absolute;bottom:3px;width:12px;height:2px;border-radius:3px;background:#6096d7}
+.nav-links .nav-contact{background:#416fc5;color:#fff;margin-inline-start:4px;border-color:#416fc5;box-shadow:0 4px 10px rgba(65,111,197,.14)}
+.nav-links .nav-contact:hover,.nav-links .nav-contact[aria-current="location"]{background:#355fad;color:#fff;border-color:#355fad}
+.nav-links .nav-contact[aria-current="location"]::after{background:#fff}
+.nav-contact span{font-size:15px;transition:transform .2s ease}
+.nav-contact:hover span{transform:translate(-2px,-2px)}
+@media(max-width:1040px){
+ .nav-inner{flex-wrap:wrap;justify-content:center;gap:10px}
+ .nav-links{justify-content:center}
+ html{scroll-padding-top:165px}
+}
+@media(max-width:640px){
+ .nav-inner{display:grid;justify-content:stretch;padding-block:9px;gap:9px}
+ .nav-links{justify-content:flex-start;border-radius:13px;gap:3px;padding:4px;scroll-padding-inline:6px}
+ .nav-links a{padding:7px 10px;min-height:38px;font-size:12px;border-radius:9px}
+ .nav-links .nav-contact{margin-inline-start:2px}
+ html{scroll-padding-top:160px}
+}
+@media(prefers-reduced-motion:reduce){.nav-contact:hover span{transform:none}}
+
 </style>
 </head>
 <body>
@@ -512,7 +540,7 @@ footer{padding-bottom:95px}
   });
 })();
 </script>
-<nav class="nav">
+<nav class="nav" aria-label="التنقل الرئيسي">
   <div class="container nav-inner">
     <a class="brand" href="#home"><span class="brand-mark brand-logo"><img src="assets/mustafa-logo-transparent.png" alt="" width="72" height="48"></span><span class="brand-copy"><span>مصطفى أبو راس</span><span class="brand-name-en" lang="en" dir="ltr">MUSTAFA ABO RAS</span><small>حلول رقمية وإدخال بيانات</small></span></a>
     <div class="nav-links">
@@ -521,7 +549,7 @@ footer{padding-bottom:95px}
       <a href="#process">طريقة العمل</a>
       <a href="#education">التعليم</a>
       <a href="#work">الأعمال</a>
-      <a href="#contact">تواصل</a>
+      <a href="#contact" class="nav-contact">تواصل <span aria-hidden="true">↗</span></a>
     </div>
   </div>
 </nav>
@@ -842,6 +870,30 @@ runDemo.addEventListener('click', async () => {
 });
 
 
+
+// Use section positions for a stable, single active navigation link.
+const navLinks = Array.from(document.querySelectorAll('.nav-links a'));
+const navTargets = navLinks.map(link => ({link, section:document.querySelector(link.getAttribute('href'))})).filter(item => item.section);
+const siteNav = document.querySelector('.nav');
+let navFrame = 0;
+const updateNav = () => {
+  navFrame = 0;
+  const boundary = siteNav.getBoundingClientRect().height + 60;
+  let active = null;
+  for (const item of navTargets) {
+    if (item.section.getBoundingClientRect().top <= boundary) active = item.link;
+  }
+  if (window.scrollY > 0 && window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) active = navLinks[navLinks.length - 1];
+  for (const link of navLinks) {
+    if (link === active) link.setAttribute('aria-current', 'location');
+    else link.removeAttribute('aria-current');
+  }
+};
+const scheduleNav = () => { if (!navFrame) navFrame = requestAnimationFrame(updateNav); };
+window.addEventListener('scroll', scheduleNav, {passive:true});
+window.addEventListener('resize', scheduleNav, {passive:true});
+window.addEventListener('load', scheduleNav, {once:true});
+updateNav();
 </script>
 
 <a class="whatsapp-float" href="https://wa.me/963983291252" target="_blank" rel="noopener noreferrer" aria-label="تواصل معي عبر واتساب (يفتح في نافذة جديدة)">
